@@ -1,0 +1,157 @@
+Log started Fri Oct 16 19:32:17 IST 2026
+
+==================================================
+EXPERIMENT A: pods with no requests or limits
+==================================================
+Waiting for the node to be Ready  done (0s)
+Waiting for metrics-server to be available  done (0s)
+Waiting for kubectl top node to return numbers  done (0s)
+
+--> Baseline: CPU already reserved on the node by system pods = 950m
+
+$ kubectl describe node minikube | grep -A 8 'Allocated resources'
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                950m (23%)   100m (2%)
+  memory             420Mi (10%)  220Mi (5%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+==================================================
+Step 1: deploy 5 pods that have no resources section
+==================================================
+
+$ cat /Users/saachimishra/downloads/toolkit/yaml/02-no-limits.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-no-limits
+  namespace: resource-demo
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: web-no-limits
+  template:
+    metadata:
+      labels:
+        app: web-no-limits
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/02-no-limits.yaml
+deployment.apps/web-no-limits created
+Waiting for deployment "web-no-limits" rollout to finish: 0 of 5 updated replicas are available...
+Waiting for deployment "web-no-limits" rollout to finish: 1 of 5 updated replicas are available...
+Waiting for deployment "web-no-limits" rollout to finish: 2 of 5 updated replicas are available...
+Waiting for deployment "web-no-limits" rollout to finish: 3 of 5 updated replicas are available...
+Waiting for deployment "web-no-limits" rollout to finish: 4 of 5 updated replicas are available...
+deployment "web-no-limits" successfully rolled out
+
+$ kubectl get pods -n resource-demo -o wide
+NAME                             READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+web-no-limits-557bd8d758-9xpj6   1/1     Running   0          2s    10.244.0.10   minikube   <none>           <none>
+web-no-limits-557bd8d758-dfwj7   1/1     Running   0          2s    10.244.0.7    minikube   <none>           <none>
+web-no-limits-557bd8d758-j77wh   1/1     Running   0          2s    10.244.0.8    minikube   <none>           <none>
+web-no-limits-557bd8d758-w5p28   1/1     Running   0          2s    10.244.0.9    minikube   <none>           <none>
+web-no-limits-557bd8d758-wndxk   1/1     Running   0          2s    10.244.0.6    minikube   <none>           <none>
+
+==================================================
+Step 2: what did the scheduler reserve for them?
+==================================================
+
+$ kubectl describe node minikube | grep -A 25 'Non-terminated Pods'
+Non-terminated Pods:          (16 in total)
+  Namespace                   Name                                          CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                          ------------  ----------  ---------------  -------------  ---
+  kube-system                 coredns-559f6c778d-82qq9                      100m (2%)     0 (0%)      70Mi (1%)        170Mi (4%)     12d
+  kube-system                 etcd-minikube                                 100m (2%)     0 (0%)      100Mi (2%)       0 (0%)         12d
+  kube-system                 kindnet-xrhkz                                 100m (2%)     100m (2%)   50Mi (1%)        50Mi (1%)      12d
+  kube-system                 kube-apiserver-minikube                       250m (6%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-controller-manager-minikube              200m (5%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-proxy-7nffv                              0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-scheduler-minikube                       100m (2%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 metrics-server-768f9f6999-mnmhr               100m (2%)     0 (0%)      200Mi (5%)       0 (0%)         12d
+  kube-system                 storage-provisioner                           0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kubernetes-dashboard        dashboard-metrics-scraper-69cbd87b98-xl7b9    0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kubernetes-dashboard        kubernetes-dashboard-6df74558bd-49vhs         0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  resource-demo               web-no-limits-557bd8d758-9xpj6                0 (0%)        0 (0%)      0 (0%)           0 (0%)         2s
+  resource-demo               web-no-limits-557bd8d758-dfwj7                0 (0%)        0 (0%)      0 (0%)           0 (0%)         2s
+  resource-demo               web-no-limits-557bd8d758-j77wh                0 (0%)        0 (0%)      0 (0%)           0 (0%)         2s
+  resource-demo               web-no-limits-557bd8d758-w5p28                0 (0%)        0 (0%)      0 (0%)           0 (0%)         2s
+  resource-demo               web-no-limits-557bd8d758-wndxk                0 (0%)        0 (0%)      0 (0%)           0 (0%)         2s
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                950m (23%)   100m (2%)
+  memory             420Mi (10%)  220Mi (5%)
+  ephemeral-storage  0 (0%)       0 (0%)
+
+$ kubectl describe node minikube | grep -A 8 'Allocated resources'
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                950m (23%)   100m (2%)
+  memory             420Mi (10%)  220Mi (5%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+==================================================
+Step 3: Quality of Service class of these pods
+==================================================
+
+$ kubectl get pods -n resource-demo -o custom-columns=NAME:.metadata.name,QOS:.status.qosClass
+NAME                             QOS
+web-no-limits-557bd8d758-9xpj6   BestEffort
+web-no-limits-557bd8d758-dfwj7   BestEffort
+web-no-limits-557bd8d758-j77wh   BestEffort
+web-no-limits-557bd8d758-w5p28   BestEffort
+web-no-limits-557bd8d758-wndxk   BestEffort
+
+==================================================
+Step 4: what are they actually using?
+==================================================
+Waiting for metrics for the pods ..... done (25s)
+
+$ kubectl top pod -n resource-demo
+NAME                             CPU(cores)   MEMORY(bytes)   
+web-no-limits-557bd8d758-9xpj6   4m           4Mi             
+web-no-limits-557bd8d758-dfwj7   7m           8Mi             
+web-no-limits-557bd8d758-j77wh   4m           8Mi             
+web-no-limits-557bd8d758-w5p28   4m           4Mi             
+web-no-limits-557bd8d758-wndxk   5m           4Mi             
+
+==================================================
+Step 5: overcommit the node by scaling to 30 pods
+==================================================
+
+$ kubectl scale deployment web-no-limits -n resource-demo --replicas=30
+deployment.apps/web-no-limits scaled
+Waiting for all 30 pods to be Running .. done (10s)
+
+Running pods: 30
+
+$ kubectl describe node minikube | grep -A 8 'Allocated resources'
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                950m (23%)   100m (2%)
+  memory             420Mi (10%)  220Mi (5%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+RESULT: baseline 950m, with 5 pods 950m, with 30 pods 950m of CPU reserved. 30 pods running, all BestEffort. The scheduler reserved nothing, so it accepted every pod.
+
+Saved a copy of this output to: /Users/saachimishra/downloads/toolkit/evidence/A-no-limits.txt

@@ -1,0 +1,61 @@
+Log started Fri Oct 16 19:45:15 IST 2026
+
+==================================================
+EXPERIMENT E: actual usage versus requested and limited
+==================================================
+Waiting for the node to be Ready  done (0s)
+Waiting for metrics-server to be available  done (0s)
+Waiting for kubectl top node to return numbers  done (0s)
+
+==================================================
+Step 1: run 3 nginx pods with requests/limits plus the 200m-limited CPU burner
+==================================================
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/03-with-limits.yaml
+deployment.apps/web-with-limits created
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/05-cpu-limited.yaml
+pod/cpu-limited created
+Waiting for deployment "web-with-limits" rollout to finish: 0 of 3 updated replicas are available...
+Waiting for deployment "web-with-limits" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "web-with-limits" rollout to finish: 2 of 3 updated replicas are available...
+deployment "web-with-limits" successfully rolled out
+pod/cpu-limited condition met
+Waiting for metrics for every pod ...... done (30s)
+Waiting for cpu-limited to reach its limit  done (0s)
+
+==================================================
+Step 2: the combined view
+==================================================
+=== REQUESTED AND LIMITED (from the YAML) ===
+NAME                               CPU_REQ   CPU_LIM   MEM_REQ   MEM_LIM
+cpu-limited                        100m      200m      16Mi      32Mi
+web-with-limits-67c554d58b-dtkxg   200m      500m      64Mi      128Mi
+web-with-limits-67c554d58b-kf57m   200m      500m      64Mi      128Mi
+web-with-limits-67c554d58b-r6dpn   200m      500m      64Mi      128Mi
+
+=== ACTUAL USAGE (kubectl top pod) ===
+NAME                               CPU(cores)   MEMORY(bytes)   
+cpu-limited                        201m         0Mi             
+web-with-limits-67c554d58b-dtkxg   2m           4Mi             
+web-with-limits-67c554d58b-kf57m   4m           4Mi             
+web-with-limits-67c554d58b-r6dpn   3m           4Mi             
+
+=== NODE USAGE (kubectl top node) ===
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+minikube   395m         9%       1751Mi          44%         
+
+=== NODE RESERVATIONS (describe node) ===
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                1650m (41%)  1800m (45%)
+  memory             628Mi (16%)  636Mi (16%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+RESULT: three numbers exist for every pod. nginx pods requested 200m but used about 0m. cpu-limited had a 200m limit and used about 201m. The node had 1650m of CPU reserved by requests but real use was only 395m CPU (9%), 1751Mi memory (44%).
+
+Saved a copy of this output to: /Users/saachimishra/downloads/toolkit/evidence/E-actual-vs-requested.txt

@@ -1,0 +1,126 @@
+Log started Fri Oct 16 19:39:54 IST 2026
+
+==================================================
+EXPERIMENT C: CPU throttling
+==================================================
+Waiting for the node to be Ready  done (0s)
+Waiting for metrics-server to be available  done (0s)
+Waiting for kubectl top node to return numbers  done (0s)
+
+==================================================
+Step 1: start a pod that tries to use a full core but has a 200m CPU limit
+==================================================
+
+$ cat /Users/saachimishra/downloads/toolkit/yaml/05-cpu-limited.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cpu-limited
+  namespace: resource-demo
+spec:
+  containers:
+    - name: burner
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do :; done"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 16Mi
+        limits:
+          cpu: 200m
+          memory: 32Mi
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/05-cpu-limited.yaml
+pod/cpu-limited created
+pod/cpu-limited condition met
+Waiting for metrics for cpu-limited .......... done (50s)
+
+==================================================
+Step 2: actual usage stays at the limit (6 samples, 5 seconds apart)
+==================================================
+
+$ kubectl top pod cpu-limited -n resource-demo
+NAME          CPU(cores)   MEMORY(bytes)   
+cpu-limited   201m         3Mi             
+
+$ kubectl top pod cpu-limited -n resource-demo
+NAME          CPU(cores)   MEMORY(bytes)   
+cpu-limited   201m         3Mi             
+
+$ kubectl top pod cpu-limited -n resource-demo
+NAME          CPU(cores)   MEMORY(bytes)   
+cpu-limited   201m         3Mi             
+
+$ kubectl top pod cpu-limited -n resource-demo
+NAME          CPU(cores)   MEMORY(bytes)   
+cpu-limited   201m         3Mi             
+
+$ kubectl top pod cpu-limited -n resource-demo
+NAME          CPU(cores)   MEMORY(bytes)   
+cpu-limited   201m         3Mi             
+
+$ kubectl top pod cpu-limited -n resource-demo
+NAME          CPU(cores)   MEMORY(bytes)   
+cpu-limited   201m         3Mi             
+
+==================================================
+Step 3: kernel proof of throttling (cpu.stat read twice, 10 seconds apart)
+==================================================
+
+--> cgroup v2 detected
+
+$ kubectl exec cpu-limited -n resource-demo -- cat /sys/fs/cgroup/cpu.stat   (first reading)
+usage_usec 16624849
+user_usec 16584570
+system_usec 40279
+nice_usec 0
+nr_periods 830
+nr_throttled 829
+throttled_usec 7746156
+nr_bursts 0
+burst_usec 0
+
+--> waiting 10 seconds
+
+$ kubectl exec cpu-limited -n resource-demo -- cat /sys/fs/cgroup/cpu.stat   (second reading)
+usage_usec 18678213
+user_usec 18630271
+system_usec 47942
+nice_usec 0
+nr_periods 933
+nr_throttled 932
+throttled_usec 8906421
+nr_bursts 0
+burst_usec 0
+
+Between the two readings: nr_periods +103, nr_throttled +103  =>  throttled in about 100% of periods
+
+==================================================
+Step 4: compare with a pod that has NO limit
+==================================================
+
+$ cat /Users/saachimishra/downloads/toolkit/yaml/06-cpu-unlimited.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cpu-unlimited
+  namespace: resource-demo
+spec:
+  containers:
+    - name: burner
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do :; done"]
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/06-cpu-unlimited.yaml
+pod/cpu-unlimited created
+pod/cpu-unlimited condition met
+Waiting for metrics for cpu-unlimited ... done (15s)
+
+$ kubectl top pod -n resource-demo
+NAME            CPU(cores)   MEMORY(bytes)   
+cpu-limited     200m         3Mi             
+cpu-unlimited   986m         0Mi             
+
+RESULT: cpu-limited used about 201m against a 200m limit and was throttled in about 100% of scheduling periods (nr_throttled rose by 103). The same loop with no limit used about 986m. CPU limits slow a pod down; they do not kill it.
+
+Saved a copy of this output to: /Users/saachimishra/downloads/toolkit/evidence/C-cpu-throttling.txt

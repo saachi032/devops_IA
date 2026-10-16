@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oom-demo
+  namespace: resource-demo
+spec:
+  containers:
+    - name: memory-hog
+      image: python:3.12-alpine
+      command: ["python", "-c"]
+      args:
+        - |
+          import time
+          chunks = []
+          while True:
+              chunks.append(b"x" * 5 * 1024 * 1024)
+              print(len(chunks) * 5, "MB allocated", flush=True)
+              time.sleep(4)
+      resources:
+        requests:
+          cpu: 50m
+          memory: 50Mi
+        limits:
+          cpu: 200m
+          memory: 100Mi

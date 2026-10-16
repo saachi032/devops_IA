@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-with-limits
+  namespace: resource-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-with-limits
+  template:
+    metadata:
+      labels:
+        app: web-with-limits
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 200m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi

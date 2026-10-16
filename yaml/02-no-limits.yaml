@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-no-limits
+  namespace: resource-demo
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: web-no-limits
+  template:
+    metadata:
+      labels:
+        app: web-no-limits
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80

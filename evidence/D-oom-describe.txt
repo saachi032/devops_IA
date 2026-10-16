@@ -1,0 +1,73 @@
+Name:             oom-demo
+Namespace:        resource-demo
+Priority:         0
+Service Account:  default
+Node:             minikube/192.168.49.2
+Start Time:       Fri, 16 Oct 2026 19:42:30 +0530
+Labels:           <none>
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.54
+IPs:
+  IP:  10.244.0.54
+Containers:
+  memory-hog:
+    Container ID:  containerd://8696f09d6db9b307c57581e73b2aa356f3ef64709cb2990d6d3051f0c6d02807
+    Image:         python:3.12-alpine
+    Image ID:      docker.io/library/python@sha256:0687a6bc9716edc2a6ee0fbfb0f87e7ee358b262b67c9215de91bc9b2d38ba71
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      python
+      -c
+    Args:
+      import time
+      chunks = []
+      while True:
+          chunks.append(b"x" * 5 * 1024 * 1024)
+          print(len(chunks) * 5, "MB allocated", flush=True)
+          time.sleep(4)
+      
+    State:          Running
+      Started:      Fri, 16 Oct 2026 19:43:58 +0530
+    Last State:     Terminated
+      Reason:       OOMKilled
+      Exit Code:    137
+      Started:      Fri, 16 Oct 2026 19:42:31 +0530
+      Finished:     Fri, 16 Oct 2026 19:43:58 +0530
+    Ready:          True
+    Restart Count:  1
+    Limits:
+      cpu:     200m
+      memory:  100Mi
+    Requests:
+      cpu:        50m
+      memory:     50Mi
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wrc2t (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-wrc2t:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age                  From               Message
+  ----    ------     ----                 ----               -------
+  Normal  Scheduled  2m11s                default-scheduler  Successfully assigned resource-demo/oom-demo to minikube
+  Normal  Pulled     43s (x2 over 2m10s)  kubelet            spec.containers{memory-hog}: Container image "python:3.12-alpine" already present on machine and can be accessed by the pod
+  Normal  Created    43s (x2 over 2m10s)  kubelet            spec.containers{memory-hog}: Container created
+  Normal  Started    43s (x2 over 2m10s)  kubelet            spec.containers{memory-hog}: Container started

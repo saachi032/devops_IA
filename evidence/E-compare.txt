@@ -1,0 +1,28 @@
+=== REQUESTED AND LIMITED (from the YAML) ===
+NAME                               CPU_REQ   CPU_LIM   MEM_REQ   MEM_LIM
+cpu-limited                        100m      200m      16Mi      32Mi
+web-with-limits-67c554d58b-dtkxg   200m      500m      64Mi      128Mi
+web-with-limits-67c554d58b-kf57m   200m      500m      64Mi      128Mi
+web-with-limits-67c554d58b-r6dpn   200m      500m      64Mi      128Mi
+
+=== ACTUAL USAGE (kubectl top pod) ===
+NAME                               CPU(cores)   MEMORY(bytes)   
+cpu-limited                        201m         0Mi             
+web-with-limits-67c554d58b-dtkxg   2m           4Mi             
+web-with-limits-67c554d58b-kf57m   4m           4Mi             
+web-with-limits-67c554d58b-r6dpn   3m           4Mi             
+
+=== NODE USAGE (kubectl top node) ===
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+minikube   395m         9%       1751Mi          44%         
+
+=== NODE RESERVATIONS (describe node) ===
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                1650m (41%)  1800m (45%)
+  memory             628Mi (16%)  636Mi (16%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)

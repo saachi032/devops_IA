@@ -1,0 +1,58 @@
+Log started Fri Oct 16 19:30:18 IST 2026
+
+==================================================
+SETUP: cluster, metrics-server and baseline
+==================================================
+
+--> Cluster is not running. Starting minikube (first time can take several minutes)
+* minikube v1.39.0 on Darwin 26.3.1 (arm64)
+* Using the docker driver based on existing profile
+* Starting "minikube" primary control-plane node in "minikube" cluster
+* Pulling base image v0.0.51 ...
+* Preparing Kubernetes v1.37.0 on containerd 2.3.4 ...
+* Verifying Kubernetes components...
+  - Using image docker.io/kubernetesui/metrics-scraper:v1.0.8
+  - Using image registry.k8s.io/metrics-server/metrics-server:v0.9.0
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+  - Using image docker.io/kubernetesui/dashboard:v2.7.0
+* Some dashboard features require the metrics-server addon. To enable all features please run:
+
+	minikube addons enable metrics-server
+
+* Enabled addons: default-storageclass, metrics-server, storage-provisioner, dashboard
+* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+Waiting for the node to be Ready  done (0s)
+Waiting for metrics-server to be available ...... done (30s)
+Waiting for kubectl top node to return numbers . done (5s)
+
+$ kubectl get nodes
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   12d   v1.37.0
+
+$ kubectl top nodes
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+minikube   503m         12%      1506Mi          38%         
+
+$ kubectl describe node minikube | grep -A 6 'Allocatable'
+Allocatable:
+  cpu:                4
+  ephemeral-storage:  245405159424
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+
+$ kubectl describe node minikube | grep -A 8 'Allocated resources'
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                950m (23%)   100m (2%)
+  memory             420Mi (10%)  220Mi (5%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+RESULT: cluster ready. CPU available to pods: 4000m. Already reserved by system pods: 950m.
+
+Saved a copy of this output to: /Users/saachimishra/downloads/toolkit/evidence/00-baseline.txt

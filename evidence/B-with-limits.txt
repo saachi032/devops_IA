@@ -1,0 +1,243 @@
+Log started Fri Oct 16 19:39:25 IST 2026
+
+==================================================
+EXPERIMENT B: pods with requests and limits
+==================================================
+Waiting for the node to be Ready  done (0s)
+Waiting for metrics-server to be available  done (0s)
+Waiting for kubectl top node to return numbers  done (0s)
+
+--> Baseline CPU reserved by system pods = 950m
+
+==================================================
+Step 1: deploy 3 pods (each requests 200m CPU / 64Mi, limit 500m CPU / 128Mi)
+==================================================
+
+$ cat /Users/saachimishra/downloads/toolkit/yaml/03-with-limits.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-with-limits
+  namespace: resource-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-with-limits
+  template:
+    metadata:
+      labels:
+        app: web-with-limits
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 200m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/03-with-limits.yaml
+deployment.apps/web-with-limits created
+Waiting for deployment "web-with-limits" rollout to finish: 0 of 3 updated replicas are available...
+Waiting for deployment "web-with-limits" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "web-with-limits" rollout to finish: 2 of 3 updated replicas are available...
+deployment "web-with-limits" successfully rolled out
+
+$ kubectl get pods -n resource-demo -o wide
+NAME                               READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+web-with-limits-67c554d58b-jvkpb   1/1     Running   0          1s    10.244.0.36   minikube   <none>           <none>
+web-with-limits-67c554d58b-njbqb   1/1     Running   0          1s    10.244.0.37   minikube   <none>           <none>
+web-with-limits-67c554d58b-tcn2h   1/1     Running   0          1s    10.244.0.38   minikube   <none>           <none>
+
+==================================================
+Step 2: the node now reserves resources for them
+==================================================
+
+$ kubectl describe node minikube | grep -A 25 'Non-terminated Pods'
+Non-terminated Pods:          (14 in total)
+  Namespace                   Name                                          CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                          ------------  ----------  ---------------  -------------  ---
+  kube-system                 coredns-559f6c778d-82qq9                      100m (2%)     0 (0%)      70Mi (1%)        170Mi (4%)     12d
+  kube-system                 etcd-minikube                                 100m (2%)     0 (0%)      100Mi (2%)       0 (0%)         12d
+  kube-system                 kindnet-xrhkz                                 100m (2%)     100m (2%)   50Mi (1%)        50Mi (1%)      12d
+  kube-system                 kube-apiserver-minikube                       250m (6%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-controller-manager-minikube              200m (5%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-proxy-7nffv                              0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-scheduler-minikube                       100m (2%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 metrics-server-768f9f6999-mnmhr               100m (2%)     0 (0%)      200Mi (5%)       0 (0%)         12d
+  kube-system                 storage-provisioner                           0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kubernetes-dashboard        dashboard-metrics-scraper-69cbd87b98-xl7b9    0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kubernetes-dashboard        kubernetes-dashboard-6df74558bd-49vhs         0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  resource-demo               web-with-limits-67c554d58b-jvkpb              200m (5%)     500m (12%)  64Mi (1%)        128Mi (3%)     1s
+  resource-demo               web-with-limits-67c554d58b-njbqb              200m (5%)     500m (12%)  64Mi (1%)        128Mi (3%)     1s
+  resource-demo               web-with-limits-67c554d58b-tcn2h              200m (5%)     500m (12%)  64Mi (1%)        128Mi (3%)     1s
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                1550m (38%)  1600m (40%)
+  memory             612Mi (15%)  604Mi (15%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+$ kubectl describe node minikube | grep -A 8 'Allocated resources'
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                1550m (38%)  1600m (40%)
+  memory             612Mi (15%)  604Mi (15%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+
+==================================================
+Step 3: Quality of Service class
+==================================================
+
+$ kubectl get pods -n resource-demo -o custom-columns=NAME:.metadata.name,QOS:.status.qosClass
+NAME                               QOS
+web-with-limits-67c554d58b-jvkpb   Burstable
+web-with-limits-67c554d58b-njbqb   Burstable
+web-with-limits-67c554d58b-tcn2h   Burstable
+
+==================================================
+Step 4: fill the node so some pods cannot be placed
+==================================================
+
+--> Node can reserve 4000m, already 1550m used, so about 12 more pods fit. Scaling to 25 so that about 10 cannot be placed.
+
+$ kubectl scale deployment web-with-limits -n resource-demo --replicas=25
+deployment.apps/web-with-limits scaled
+Waiting for the scheduler to refuse some pods  done (0s)
+Waiting for the pods to settle . done (5s)
+
+$ kubectl get pods -n resource-demo
+NAME                               READY   STATUS    RESTARTS   AGE
+web-with-limits-67c554d58b-29jk7   1/1     Running   0          11s
+web-with-limits-67c554d58b-59dph   1/1     Running   0          11s
+web-with-limits-67c554d58b-6m8d6   0/1     Pending   0          10s
+web-with-limits-67c554d58b-6pbj9   1/1     Running   0          11s
+web-with-limits-67c554d58b-7bgzp   1/1     Running   0          11s
+web-with-limits-67c554d58b-7qcx4   1/1     Running   0          11s
+web-with-limits-67c554d58b-9b7dh   0/1     Pending   0          11s
+web-with-limits-67c554d58b-9nm22   0/1     Pending   0          10s
+web-with-limits-67c554d58b-bkksq   0/1     Pending   0          10s
+web-with-limits-67c554d58b-dx4pc   0/1     Pending   0          10s
+web-with-limits-67c554d58b-gd6hl   1/1     Running   0          11s
+web-with-limits-67c554d58b-gvvf6   0/1     Pending   0          10s
+web-with-limits-67c554d58b-jvkpb   1/1     Running   0          12s
+web-with-limits-67c554d58b-mh267   0/1     Pending   0          10s
+web-with-limits-67c554d58b-mjzmm   0/1     Pending   0          10s
+web-with-limits-67c554d58b-mrwqh   0/1     Pending   0          11s
+web-with-limits-67c554d58b-njbqb   1/1     Running   0          12s
+web-with-limits-67c554d58b-rdkcz   1/1     Running   0          11s
+web-with-limits-67c554d58b-s97sx   1/1     Running   0          11s
+web-with-limits-67c554d58b-sf8lf   1/1     Running   0          11s
+web-with-limits-67c554d58b-tcn2h   1/1     Running   0          12s
+web-with-limits-67c554d58b-vfcsz   0/1     Pending   0          11s
+web-with-limits-67c554d58b-x66qc   1/1     Running   0          11s
+web-with-limits-67c554d58b-zjtxb   1/1     Running   0          11s
+web-with-limits-67c554d58b-zs2kp   1/1     Running   0          11s
+
+==================================================
+Step 5: why are some pods Pending? (scheduler message)
+==================================================
+
+$ kubectl describe pod web-with-limits-67c554d58b-6m8d6 -n resource-demo | tail -8
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason            Age   From               Message
+  ----     ------            ----  ----               -------
+  Warning  FailedScheduling  10s   default-scheduler  0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+
+$ kubectl get events -n resource-demo --sort-by=.lastTimestamp | grep FailedScheduling | tail -3
+11s         Warning   FailedScheduling    pod/web-with-limits-67c554d58b-9b7dh    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+11s         Warning   FailedScheduling    pod/web-with-limits-67c554d58b-6m8d6    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+11s         Warning   FailedScheduling    pod/web-with-limits-67c554d58b-vfcsz    0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+
+==================================================
+Step 6: node reservation versus real usage
+==================================================
+
+$ kubectl describe node minikube | grep -A 8 'Allocated resources'
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                3950m (98%)   7600m (190%)
+  memory             1380Mi (35%)  2140Mi (54%)
+  ephemeral-storage  0 (0%)        0 (0%)
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%)
+Waiting for node metrics  done (0s)
+
+$ kubectl top node
+NAME       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+minikube   210m         5%       1642Mi          41%         
+
+==================================================
+Step 7: scale back down
+==================================================
+
+$ kubectl scale deployment web-with-limits -n resource-demo --replicas=3
+deployment.apps/web-with-limits scaled
+
+==================================================
+Step 8: Guaranteed class (requests equal limits)
+==================================================
+
+$ cat /Users/saachimishra/downloads/toolkit/yaml/04-guaranteed.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: guaranteed-pod
+  namespace: resource-demo
+spec:
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+
+$ kubectl apply -f /Users/saachimishra/downloads/toolkit/yaml/04-guaranteed.yaml
+pod/guaranteed-pod created
+pod/guaranteed-pod condition met
+
+$ kubectl get pods -n resource-demo -o custom-columns=NAME:.metadata.name,QOS:.status.qosClass
+NAME                               QOS
+guaranteed-pod                     Guaranteed
+web-with-limits-67c554d58b-29jk7   Burstable
+web-with-limits-67c554d58b-59dph   Burstable
+web-with-limits-67c554d58b-6pbj9   Burstable
+web-with-limits-67c554d58b-7bgzp   Burstable
+web-with-limits-67c554d58b-7qcx4   Burstable
+web-with-limits-67c554d58b-gd6hl   Burstable
+web-with-limits-67c554d58b-jvkpb   Burstable
+web-with-limits-67c554d58b-njbqb   Burstable
+web-with-limits-67c554d58b-rdkcz   Burstable
+web-with-limits-67c554d58b-s97sx   Burstable
+web-with-limits-67c554d58b-sf8lf   Burstable
+web-with-limits-67c554d58b-tcn2h   Burstable
+web-with-limits-67c554d58b-x66qc   Burstable
+web-with-limits-67c554d58b-zjtxb   Burstable
+web-with-limits-67c554d58b-zs2kp   Burstable
+
+RESULT: 3 pods raised the reservation from 950m to 1550m CPU. At 25 replicas, 15 pods ran and 10 stayed Pending (Insufficient cpu). Reserved 3950m of 4000m, but real node usage was 210m (5%). Classes seen: Burstable and Guaranteed.
+
+Saved a copy of this output to: /Users/saachimishra/downloads/toolkit/evidence/B-with-limits.txt

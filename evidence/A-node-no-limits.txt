@@ -1,0 +1,127 @@
+Name:               minikube
+Roles:              control-plane
+Labels:             beta.kubernetes.io/arch=arm64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=arm64
+                    kubernetes.io/hostname=minikube
+                    kubernetes.io/os=linux
+                    minikube.k8s.io/commit=7a9f6a841470a207de8cf4bafcccee0969d8ba10
+                    minikube.k8s.io/name=minikube
+                    minikube.k8s.io/primary=true
+                    minikube.k8s.io/updated_at=2026_10_04T15_34_23_0700
+                    minikube.k8s.io/version=v1.39.0
+                    node-role.kubernetes.io/control-plane=
+                    node.kubernetes.io/exclude-from-external-load-balancers=
+Annotations:        node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Sun, 04 Oct 2026 15:34:19 +0530
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  minikube
+  AcquireTime:     <unset>
+  RenewTime:       Fri, 16 Oct 2026 19:32:57 +0530
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Fri, 16 Oct 2026 19:30:44 +0530   Sun, 04 Oct 2026 15:34:17 +0530   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Fri, 16 Oct 2026 19:30:44 +0530   Sun, 04 Oct 2026 15:34:17 +0530   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Fri, 16 Oct 2026 19:30:44 +0530   Sun, 04 Oct 2026 15:34:17 +0530   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Fri, 16 Oct 2026 19:30:44 +0530   Sun, 04 Oct 2026 15:34:47 +0530   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.49.2
+  Hostname:    minikube
+Capacity:
+  cpu:                4
+  ephemeral-storage:  245405159424
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+  memory:             4010880Ki
+  pods:               110
+Allocatable:
+  cpu:                4
+  ephemeral-storage:  245405159424
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+  memory:             4010880Ki
+  pods:               110
+System Info:
+  Machine ID:                 c7552358bf1aab9f1f21b3de6a971616
+  System UUID:                c7552358bf1aab9f1f21b3de6a971616
+  Boot ID:                    f9b4f0bc-bef5-4a40-9e2f-1da345d7d87d
+  Kernel Version:             7.0.14-linuxkit
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               arm64
+  Container Runtime Version:  containerd://2.3.4
+  Kubelet Version:            v1.37.0
+PodCIDR:                      10.244.0.0/24
+PodCIDRs:                     10.244.0.0/24
+Non-terminated Pods:          (41 in total)
+  Namespace                   Name                                          CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                          ------------  ----------  ---------------  -------------  ---
+  kube-system                 coredns-559f6c778d-82qq9                      100m (2%)     0 (0%)      70Mi (1%)        170Mi (4%)     12d
+  kube-system                 etcd-minikube                                 100m (2%)     0 (0%)      100Mi (2%)       0 (0%)         12d
+  kube-system                 kindnet-xrhkz                                 100m (2%)     100m (2%)   50Mi (1%)        50Mi (1%)      12d
+  kube-system                 kube-apiserver-minikube                       250m (6%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-controller-manager-minikube              200m (5%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-proxy-7nffv                              0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 kube-scheduler-minikube                       100m (2%)     0 (0%)      0 (0%)           0 (0%)         12d
+  kube-system                 metrics-server-768f9f6999-mnmhr               100m (2%)     0 (0%)      200Mi (5%)       0 (0%)         12d
+  kube-system                 storage-provisioner                           0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kubernetes-dashboard        dashboard-metrics-scraper-69cbd87b98-xl7b9    0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  kubernetes-dashboard        kubernetes-dashboard-6df74558bd-49vhs         0 (0%)        0 (0%)      0 (0%)           0 (0%)         12d
+  resource-demo               web-no-limits-557bd8d758-29776                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-4678q                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-4rgwb                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-54m7k                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-5wjbv                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-66hpn                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-6kxhq                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-955jm                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-9xpj6                0 (0%)        0 (0%)      0 (0%)           0 (0%)         40s
+  resource-demo               web-no-limits-557bd8d758-bssqm                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-bwrdn                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-cpn8j                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-dfwj7                0 (0%)        0 (0%)      0 (0%)           0 (0%)         40s
+  resource-demo               web-no-limits-557bd8d758-djr8b                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-dtjt7                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-flgqm                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-hbzd2                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-j77wh                0 (0%)        0 (0%)      0 (0%)           0 (0%)         40s
+  resource-demo               web-no-limits-557bd8d758-nc8tk                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-nk7s6                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-q2bnc                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-rlzrb                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-t8wnk                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-tsk2p                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-vm6nq                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-w5p28                0 (0%)        0 (0%)      0 (0%)           0 (0%)         40s
+  resource-demo               web-no-limits-557bd8d758-wf2vg                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-wndxk                0 (0%)        0 (0%)      0 (0%)           0 (0%)         40s
+  resource-demo               web-no-limits-557bd8d758-wtcfj                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+  resource-demo               web-no-limits-557bd8d758-zs4cd                0 (0%)        0 (0%)      0 (0%)           0 (0%)         12s
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests     Limits
+  --------           --------     ------
+  cpu                950m (23%)   100m (2%)
+  memory             420Mi (10%)  220Mi (5%)
+  ephemeral-storage  0 (0%)       0 (0%)
+  hugepages-1Gi      0 (0%)       0 (0%)
+  hugepages-2Mi      0 (0%)       0 (0%)
+  hugepages-32Mi     0 (0%)       0 (0%)
+  hugepages-64Ki     0 (0%)       0 (0%)
+Events:
+  Type    Reason                   Age    From             Message
+  ----    ------                   ----   ----             -------
+  Normal  NodeHasSufficientMemory  12d    kubelet          Node minikube status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure    12d    kubelet          Node minikube status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID     12d    kubelet          Node minikube status is now: NodeHasSufficientPID
+  Normal  RegisteredNode           12d    node-controller  Node minikube event: Registered Node minikube in Controller
+  Normal  NodeReady                12d    kubelet          Node minikube status is now: NodeReady
+  Normal  RegisteredNode           2m13s  node-controller  Node minikube event: Registered Node minikube in Controller
